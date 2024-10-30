@@ -206,12 +206,12 @@ static void DAC1_Init_with_DMA (){
 }
 
 // Various waveforms.
-// Sawtooth
-//static uint16_t wave_mem[] = {0,10,20,30,40,50,60,70,80,90,100,110,120,130};
+// //Sawtooth
+// static uint16_t wave_mem[] = {0,10,20,30,40,50,60,70,80,90,100,110,120,130};
 // Reverse sawtooth
 //static uint16_t wave_mem[] = {130,120,110,100,90,80,70,60,50,40,30,20,10,0};
-// Triangle
-//static uint16_t wave_mem[] = {0,10,20,30,40,50,60,70,60,50,40,30,20,10};
+// //Triangle
+// static uint16_t wave_mem[] = {0,10,20,30,40,50,60,70,60,50,40,30,20,10};
 // Sine
 static uint16_t wave_mem[]= {100, 131, 159, 181, 195, 200, 195, 181, 159, 131,
 			100,  69,  41,  19,   5,   0,   5,  19,  41,  69};
