@@ -21,7 +21,12 @@ static void setup_DMA (uint8_t *DMA_mem_addr,
     // The DMA controller is chapter 11 of the RM0394 reference manual.
 
     // Turn on the clocks to the DMA controller.
-    RCC->AHB1ENR ...
+    RCC->AHB1ENR = 4; // reset clock
+
+    // enableing clock 3 different ways 
+    // RCC->AHB1ENR |= RCC_AHB1ENR_DMA1EN;
+    // RCC->AHB1ENR |= (0x1UL << (0U));
+    RCC->AHB1ENR |= 1;
 
     // DMA ISR (interrupt status reg) needs no programming.
 
