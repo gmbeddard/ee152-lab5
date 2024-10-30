@@ -233,7 +233,7 @@ int main(void){
  
     // Setup for the GPIO port B, pin 3 to be alternate-function #1.
     // This allows DAC #1 to drive it.
-    set_gpio_alt_func (GPIOA, 5, 1);	// Channel 1 = PA5 = Nano A4
+    set_gpio_alt_func(GPIOA, 5, 1);	// Channel 1 = PA5 = Nano A4
 
     // Now set up timer 2, channel 2. The params are prescaler, reload dividers.
     // With /1000, the trigger will fire at 80KHz. We'll use this to trigger
