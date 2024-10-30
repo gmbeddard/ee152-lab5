@@ -24,8 +24,8 @@ static void setup_DMA (uint8_t *DMA_mem_addr,
     RCC->AHB1ENR = 4; // reset clock
 
     // enableing clock 3 different ways 
-    // RCC->AHB1ENR |= RCC_AHB1ENR_DMA1EN;
-    // RCC->AHB1ENR |= (0x1UL << (0U));
+    RCC->AHB1ENR |= RCC_AHB1ENR_DMA1EN;
+    RCC->AHB1ENR |= (0x1UL << (0U));
     RCC->AHB1ENR |= 1;
 
     // DMA ISR (interrupt status reg) needs no programming.
