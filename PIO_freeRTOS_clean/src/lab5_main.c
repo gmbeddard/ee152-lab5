@@ -23,6 +23,7 @@ static void setup_DMA (uint8_t *DMA_mem_addr,
     // Turn on the clocks to the DMA controller.
     RCC->AHB1ENR = 4; // reset clock
 
+    // Step 1
     // enableing clock 3 different ways 
     RCC->AHB1ENR |= RCC_AHB1ENR_DMA1EN;
     RCC->AHB1ENR |= (0x1UL << (0U));
@@ -36,7 +37,17 @@ static void setup_DMA (uint8_t *DMA_mem_addr,
     // MSize and 1B PSize just seems to mean losing the 8 most-significant bits
     // of each memory read, rather than very efficiently having 1 mem read ->
     // 2 DAC writes.
+
+    // link: https://controllerstech.com/how-to-setup-dma-using-registers/
+    // Step 2: enable DMA interrrupts 
     DMA1_Channel3->CCR  ...
+
+    // Step 3: set data direction
+    // Step 4: enable circular mode
+    // Step 5. enable memory incrememnt (MINC)
+    // Step 6: Set the peripheral data size (PSIZE)
+    // Step 7: set the memory data size (MSIZE)
+    // Step 8: set the priority level (0)
 
     // Number of data to transfer register for "DMA channel x" (DMA_CNDTRx). One
     // CSR for each DMA channel; it contails the number of data to transfer.
