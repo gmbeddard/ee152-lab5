@@ -40,10 +40,23 @@ static void setup_DMA (uint8_t *DMA_mem_addr,
 
     // link: https://controllerstech.com/how-to-setup-dma-using-registers/
     // Step 2: enable DMA interrrupts 
-    DMA1_Channel3->CCR  ...
+    DMA1_Channel3->CCR |= (1<<1) | (1<<2) | (1<<3);
 
     // Step 3: set data direction
     // Step 4: enable circular mode
+    if (circular) {
+        // clear MEM2MEM bit of register
+        DMA1_Channel3->CCR &= ~DMA_CCR_MEM2MEM; // also written as DMA1_Channel3->CCR &= ~(1<<14);
+        // set circular to true
+        DMA1_Channel3->CCR |= DMA_CCR_CIRC; // Can also be written as (pg 312): DMA1_Channel3->CCR |= 1<<5;
+    }
+    else {
+        // disable CIRC in case MEM2MEM is on
+        DMA1_Channel3->CCR &= ~DMA_CCR_CIRC;
+        // enable MEM2MEM bit
+        DMA1_Channel3->CCR |= DMA_CCR_MEM2MEM;
+
+    }
     // Step 5. enable memory incrememnt (MINC)
     // Step 6: Set the peripheral data size (PSIZE)
     // Step 7: set the memory data size (MSIZE)
