@@ -28,6 +28,8 @@ static void setup_DMA (uint8_t *DMA_mem_addr,
     RCC->AHB1ENR |= (0x1UL << (0U));
     RCC->AHB1ENR |= 1;
 
+    // testing
+
     // DMA ISR (interrupt status reg) needs no programming.
 
     // Configuration register for DMA channel x (DMA_CCRx); one CSR for each
