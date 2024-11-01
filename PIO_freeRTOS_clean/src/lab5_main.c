@@ -23,13 +23,8 @@ static void setup_DMA (uint8_t *DMA_mem_addr,
     // Turn on the clocks to the DMA controller.
     RCC->AHB1ENR = 4; // reset clock
 
-    // Step 1
-    // enableing clock 3 different ways 
-    RCC->AHB1ENR |= RCC_AHB1ENR_DMA1EN;
-    RCC->AHB1ENR |= (0x1UL << (0U));
-    RCC->AHB1ENR |= 1;
-
-    // DMA ISR (interrupt status reg) needs no programming.
+    // Step 1; enableing clock 3 different ways 
+    RCC->AHB1ENR |= RCC_AHB1ENR_DMA1EN; // same as RCC->AHB1ENR |= (0x1UL  <<  (0U)); same as RCC->AHB1ENR |= 1;
 
     // Configuration register for DMA channel x (DMA_CCRx); one CSR for each
     // channel.
@@ -40,15 +35,41 @@ static void setup_DMA (uint8_t *DMA_mem_addr,
 
     // link: https://controllerstech.com/how-to-setup-dma-using-registers/
     // Step 2: enable DMA interrrupts 
-    DMA1_Channel3->CCR |= (1<<1) | (1<<2) | (1<<3);
+    // skipping this bc "DMA ISR (interrupt status reg) needs no programming."
 
+    // Step 3: setting priority level to low (00) aka clearing the bit to 0
+    DMA1_Channel3->CCR &= ~DMA_CCR_PL;  // same as writing DMA1_Channel3->CCR |= 0; i think
     // Step 3: set data direction
-    // Step 4: enable circular mode
+    DMA1_Channel3->CCR &= ~DMA_CCR_MEM2MEM; // also written as DMA1_Channel3->CCR &= ~(1 << 14);  
+
+    // Step 4: set the memory data size (MSIZE)
+    // Joel is requesting 16 bits which is 01 (0 in DMA_CCRx[11] and 1 in [10])
+    DMA1_Channel3->CCR &= ~(1 << 10);     // left shifts "1" to the 10th spot
+    //TODO: not sure if this is right below
+    DMA1_Channel3->CCR |= (1 << 10);    //16 bits - not sure if this is right
+
+    // Step 5: Set the peripheral data size (PSIZE)
+        // resetting the PSIZE to default (00)
+        // DMA_CCRx[9] and [8]
+    DMA1_Channel3->CCR &= ~(1 << 8);      // same as writing DMA1_Channel3->CCR &= ~DMA_CCR_PSIZE;
+
+    // Step 6: enable memory incrememnt (MINC) to 1
+        // setting to 1
+        // DMA_CCRx[7] so shift 1 bit left by 7 spaces
+    DMA1_Channel3->CCR |= (1 << 7);       // same as writing DMA1_Channel3->CCR |=  DMA_CCR_MINC
+
+    // Step 7: disable PINC
+        // setting to 0
+        // DMA_CCRx[6] so &~ a shifted bit of 1 by 6 spaces
+    DMA1_Channel3->CCR &= ~(1 << 6);      // same as writing DMA1_Channel3->CCR &= ~DMA_CCR_PINC
+
+    // Step 6: enable circular mode
     if (circular) {
+        // make sure MEM2MEM is cleared since DMA can't be both circ and mem2mem!! (p. 312)
         // clear MEM2MEM bit of register
-        DMA1_Channel3->CCR &= ~DMA_CCR_MEM2MEM; // also written as DMA1_Channel3->CCR &= ~(1<<14);
+        DMA1_Channel3->CCR &= ~DMA_CCR_MEM2MEM; // also written as DMA1_Channel3->CCR &= ~(1 << 14);
         // set circular to true
-        DMA1_Channel3->CCR |= DMA_CCR_CIRC; // Can also be written as (pg 312): DMA1_Channel3->CCR |= 1<<5;
+        DMA1_Channel3->CCR |= DMA_CCR_CIRC; // Can also be written as (pg 312): DMA1_Channel3->CCR |= 1 << 5;
     }
     else {
         // disable CIRC in case MEM2MEM is on
@@ -57,27 +78,41 @@ static void setup_DMA (uint8_t *DMA_mem_addr,
         DMA1_Channel3->CCR |= DMA_CCR_MEM2MEM;
 
     }
-    // Step 5. enable memory incrememnt (MINC)
-    // Step 6: Set the peripheral data size (PSIZE)
-    // Step 7: set the memory data size (MSIZE)
-    // Step 8: set the priority level (0)
+
+    // Step 7: enable DIR (read from memory p. 314)
+    DMA1_Channel3->CCR |= (1 << 4);           // same as: DMA1_Channel3->CCR |= DMA_CCR_DIR;
 
     // Number of data to transfer register for "DMA channel x" (DMA_CNDTRx). One
     // CSR for each DMA channel; it contails the number of data to transfer.
     // Set to the appropriate number. And we can read it (after disabling the
     // channel).
-    DMA1_Channel3->CNDTR...
+    DMA1_Channel3->CNDTR = DMA_data_size;
 
     // Peripheral address register for "DMA channel x" (DMA_CPARx)
-    DMA1_Channel3->CPAR...
+        // setting it equal to our argument of peripheral data
+        // cast pointer as a unsigned integer of 32 bits to make sure it actually is that
+    DMA1_Channel3->CPAR = (uint32_t) DMA_periph_addr;
 
     // Memory address register for "DMA channel x" (DMA_CMARx)
-    DMA1_Channel3->CMAR...
+        // setting it equal to our argument of peripheral data
+        // cast pointer as a unsigned integer of 32 bits to make sure it actually is that
+    DMA1_Channel3->CMAR = (uint32_t) DMA_mem_addr;
 
     // DMA channel selection register (DMA_CSELR)
     // This is one CSR for all seven channels of one DMA controller.
     // Bits for request mapping: so,
-    DMA1_CSELR->CSELR...
+        // let's enable our channel 3! which are DMA1_CSELR[11:8]
+        // first clear all 4 spots
+    DMA1_CSELR->CSELR &= ~(1 << 8);
+    DMA1_CSELR->CSELR &= ~(1 << 9);
+    DMA1_CSELR->CSELR &= ~(1 << 10);
+    DMA1_CSELR->CSELR &= ~(1 << 11);
+        // then, let's set them to enable channel 3
+    DMA1_CSELR->CSELR |= (1 << 8);
+    DMA1_CSELR->CSELR |= (1 << 9);
+    DMA1_CSELR->CSELR |= (1 << 10);
+    DMA1_CSELR->CSELR |= (1 << 11);
+
 
     // Finally: enable the DMA channel.
     DMA1_Channel3->CCR |=  DMA_CCR_EN;
@@ -112,7 +147,7 @@ static void setup_TIM2_channel
     // Set CR2.MMS[2:0] = 0b010, which generates a trigger-output (TRGO) on
     // every update event (i.e., the counter wrapping around).
     TIM2->CR2 &= ~TIM_CR2_MMS_Msk;
-    TIM2->CR2 |= (0x2UL<<TIM_CR2_MMS_Pos);
+    TIM2->CR2 |= (0x2UL << TIM_CR2_MMS_Pos);
 
     // Program a few more CSRs.
     // CCR1 = compare/capture register for our channel. This says which
@@ -173,10 +208,10 @@ static void DAC1_Init_with_DMA (){
     RCC->AHB2ENR |= RCC_AHB2ENR_GPIOAEN;
 
     // Configure PA4 (DAC1_OUT1) as Analog
-    GPIOA->MODER |=   3U<<(2*4);  // 2 bits of mode per pin; 11b = Analog
+    GPIOA->MODER |=   3U << (2*4);  // 2 bits of mode per pin; 11b = Analog
     // GPIO port pup/pulldown register. It has 2 bits per pin, and we set 
     // 00=>No pull-up or pull-down (after all, it's an analog output).
-    GPIOA->PUPDR &= ~(3U<<(2*4));
+    GPIOA->PUPDR &= ~(3U << (2*4));
 
     // Turn on the DAC clocks, set DAC1 to drive PA4 via the DAC
     // buffer, and disable triggering.
@@ -197,7 +232,7 @@ static void DAC1_Init_with_DMA (){
     // (TRGO) = 4
     DAC->CR |=  DAC_CR_TEN1;		// Trigger enable
     DAC->CR &= ~DAC_CR_TSEL1;		// TrgO from timer 2.
-    DAC->CR |= 0x4UL<<DAC_CR_TSEL1_Pos;	// TrgO from timer 2.
+    DAC->CR |= 0x4UL << DAC_CR_TSEL1_Pos;	// TrgO from timer 2.
 
     // Enable DMA (DMAEN1=1).
     // Don't enable interrupt on underrun (DMAUDRIE1=0); if it ever happens
@@ -216,6 +251,11 @@ static void DAC1_Init_with_DMA (){
 //static uint8_t wave_mem[] = {0,10,20,30,40,50,60,70,80,90,100,110,120,130};
 // Reverse sawtooth
 //static uint8_t wave_mem[] = {130,120,110,100,90,80,70,60,50,40,30,20,10,0};
+// TODO: get pictures of square in lab!
+// // Square wave
+// static uint8_t wave_mem[] = {0, 130, 0, 130, 0, 130, 0, 130, 0, 130, 
+//                              0, 130, 0, 130, 0, 130, 0, 130, 0, 130};
+// TODO: get pictures of triangle in lab!
 // Triangle
 //static uint8_t wave_mem[] = {0,10,20,30,40,50,60,70,60,50,40,30,20,10};
 // Sine
