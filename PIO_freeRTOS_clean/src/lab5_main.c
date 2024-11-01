@@ -251,7 +251,7 @@ static void DAC1_Init_with_DMA (){
 //static uint8_t wave_mem[] = {0,10,20,30,40,50,60,70,80,90,100,110,120,130};
 // Reverse sawtooth
 //static uint8_t wave_mem[] = {130,120,110,100,90,80,70,60,50,40,30,20,10,0};
-// TODO: get pictures of square in lab!
+// TODO: get pictures of sine in lab!
 // // Square wave
 // static uint8_t wave_mem[] = {0, 130, 0, 130, 0, 130, 0, 130, 0, 130, 
 //                              0, 130, 0, 130, 0, 130, 0, 130, 0, 130};
